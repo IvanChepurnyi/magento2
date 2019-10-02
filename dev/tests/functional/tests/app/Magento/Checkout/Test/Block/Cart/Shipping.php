@@ -37,7 +37,7 @@ class Shipping extends Form
     protected $shippingMethod = '//span[text()="%s"]/following::label[contains(., "%s")]/../input';
 
     /**
-     * From with shipping available shipping methods.
+     * Form with shipping available shipping methods.
      *
      * @var string
      */
@@ -70,7 +70,14 @@ class Shipping extends Form
      *
      * @var string
      */
-    protected $commonShippingPriceSelector = '.shipping .price';
+    protected $commonShippingPriceSelector = '.totals.shipping .price';
+
+    /**
+     * Estimate shipping and tax form locator.
+     *
+     * @var string
+     */
+    private $estimateShippingForm = '#shipping-zip-form';
 
     /**
      * Open estimate shipping and tax form.
@@ -132,6 +139,45 @@ class Shipping extends Form
             } else {
                 throw new \Exception("Unable to set value to field '$selector' as it's disabled.");
             }
+        }
+    }
+
+    /**
+     * Reset the address fields in the shipping and tax form.
+     *
+     * @return void
+     */
+    public function resetAddress()
+    {
+        $this->openEstimateShippingAndTax();
+        $fields = [
+           'country_id' => [
+               'selector' => '[name=country_id]',
+               'strategy' => 'css selector',
+               'input' => 'select',
+               'class' => null,
+               'value' => 'United States'
+           ],
+            'region_id' => [
+                'selector' => '[name=region_id]',
+                'strategy' => 'css selector',
+                'input' => 'select',
+                'class' => null,
+                'value' => 'Please select a region, state or province.'
+            ],
+            'postcode' => [
+                'selector' => '[name=postcode]',
+                'strategy' => 'css selector',
+                'input' => null,
+                'class' => null,
+                'value' => ''
+            ]
+        ];
+        // Test environment may become unstable when form fields are filled in a default manner.
+        // Imitating behavior closer to the real user.
+        foreach ($fields as $field) {
+            $this->_fill([$field], $this->_rootElement);
+            $this->waitForUpdatedShippingMethods();
         }
     }
 
@@ -210,5 +256,52 @@ class Shipping extends Form
     public function waitForCommonShippingPriceBlock()
     {
         $this->waitForElementVisible($this->commonShippingPriceSelector, Locator::SELECTOR_CSS);
+    }
+
+    /**
+     * Wait until estimation form to appear.
+     *
+     * @return void
+     */
+    public function waitForEstimateShippingAndTaxForm()
+    {
+        $browser = $this->browser;
+        $selector = $this->estimateShippingForm;
+
+        $browser->waitUntil(
+            function () use ($browser, $selector) {
+                $element = $browser->find($selector);
+                return $element->isPresent() ? true : null;
+            }
+        );
+    }
+
+    /**
+     * Wait for shipping method form.
+     *
+     * @return void
+     */
+    public function waitForShippingMethodForm()
+    {
+        $browser = $this->browser;
+        $selector = $this->shippingMethodForm;
+
+        $browser->waitUntil(
+            function () use ($browser, $selector) {
+                $element = $browser->find($selector);
+                return $element->isPresent() ? true : null;
+            }
+        );
+    }
+
+    /**
+     * Wait for summary block to be loaded.
+     *
+     * @return void
+     */
+    public function waitForSummaryBlock()
+    {
+        $this->waitForEstimateShippingAndTaxForm();
+        $this->waitForShippingMethodForm();
     }
 }

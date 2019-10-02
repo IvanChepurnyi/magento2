@@ -6,21 +6,26 @@
 namespace Magento\CatalogSearch\Model\Adapter\Mysql\Dynamic;
 
 use Magento\Catalog\Model\Layer\Filter\Price\Range;
+use Magento\Customer\Model\Indexer\CustomerGroupDimensionProvider;
 use Magento\Customer\Model\Session;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\DB\Select;
+use Magento\Framework\Indexer\DimensionFactory;
 use Magento\Framework\Search\Adapter\Mysql\Aggregation\DataProviderInterface as MysqlDataProviderInterface;
 use Magento\Framework\Search\Dynamic\DataProviderInterface;
 use Magento\Framework\Search\Dynamic\IntervalFactory;
 use Magento\Framework\Search\Request\BucketInterface;
 use Magento\Framework\App\ObjectManager;
-use Magento\Indexer\Model\ResourceModel\FrontendResource;
+use Magento\Store\Model\Indexer\WebsiteDimensionProvider;
 use Magento\Store\Model\StoreManager;
+use \Magento\Framework\Search\Request\IndexScopeResolverInterface;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @deprecated
+ * @see \Magento\ElasticSearch
  */
 class DataProvider implements DataProviderInterface
 {
@@ -55,14 +60,19 @@ class DataProvider implements DataProviderInterface
     private $connection;
 
     /**
-     * @var FrontendResource
-     */
-    private $indexerFrontendResource;
-
-    /**
      * @var StoreManager
      */
     private $storeManager;
+
+    /**
+     * @var IndexScopeResolverInterface
+     */
+    private $priceTableResolver;
+
+    /**
+     * @var DimensionFactory|null
+     */
+    private $dimensionFactory;
 
     /**
      * @param ResourceConnection $resource
@@ -70,8 +80,9 @@ class DataProvider implements DataProviderInterface
      * @param Session $customerSession
      * @param MysqlDataProviderInterface $dataProvider
      * @param IntervalFactory $intervalFactory
-     * @param FrontendResource $indexerFrontendResource
      * @param StoreManager $storeManager
+     * @param IndexScopeResolverInterface|null $priceTableResolver
+     * @param DimensionFactory|null $dimensionFactory
      */
     public function __construct(
         ResourceConnection $resource,
@@ -79,8 +90,9 @@ class DataProvider implements DataProviderInterface
         Session $customerSession,
         MysqlDataProviderInterface $dataProvider,
         IntervalFactory $intervalFactory,
-        FrontendResource $indexerFrontendResource = null,
-        StoreManager $storeManager = null
+        StoreManager $storeManager = null,
+        IndexScopeResolverInterface $priceTableResolver = null,
+        DimensionFactory $dimensionFactory = null
     ) {
         $this->resource = $resource;
         $this->connection = $resource->getConnection();
@@ -88,10 +100,11 @@ class DataProvider implements DataProviderInterface
         $this->customerSession = $customerSession;
         $this->dataProvider = $dataProvider;
         $this->intervalFactory = $intervalFactory;
-        $this->indexerFrontendResource = $indexerFrontendResource ?: ObjectManager::getInstance()->get(
-            \Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\FrontendResource::class
-        );
         $this->storeManager = $storeManager ?: ObjectManager::getInstance()->get(StoreManager::class);
+        $this->priceTableResolver = $priceTableResolver ?: ObjectManager::getInstance()->get(
+            IndexScopeResolverInterface::class
+        );
+        $this->dimensionFactory = $dimensionFactory ?: ObjectManager::getInstance()->get(DimensionFactory::class);
     }
 
     /**
@@ -115,16 +128,30 @@ class DataProvider implements DataProviderInterface
         ];
 
         $select = $this->getSelect();
+        $websiteId = $this->storeManager->getStore()->getWebsiteId();
+        $customerGroupId = $this->customerSession->getCustomerGroupId();
 
-        $tableName = $this->indexerFrontendResource->getMainTable();
+        $tableName = $this->priceTableResolver->resolve(
+            'catalog_product_index_price',
+            [
+                $this->dimensionFactory->create(
+                    WebsiteDimensionProvider::DIMENSION_NAME,
+                    (string)$websiteId
+                ),
+                $this->dimensionFactory->create(
+                    CustomerGroupDimensionProvider::DIMENSION_NAME,
+                    (string)$customerGroupId
+                ),
+            ]
+        );
         /** @var Table $table */
         $table = $entityStorage->getSource();
         $select->from(['main_table' => $tableName], [])
             ->where('main_table.entity_id in (select entity_id from ' . $table->getName() . ')')
             ->columns($aggregation);
 
-        $select = $this->setCustomerGroupId($select);
-        $select->where('main_table.website_id = ?', $this->storeManager->getStore()->getWebsiteId());
+        $select->where('customer_group_id = ?', $customerGroupId);
+        $select->where('main_table.website_id = ?', $websiteId);
 
         return $this->connection->fetchRow($select);
     }
@@ -202,14 +229,5 @@ class DataProvider implements DataProviderInterface
     private function getSelect()
     {
         return $this->connection->select();
-    }
-
-    /**
-     * @param Select $select
-     * @return Select
-     */
-    private function setCustomerGroupId($select)
-    {
-        return $select->where('customer_group_id = ?', $this->customerSession->getCustomerGroupId());
     }
 }

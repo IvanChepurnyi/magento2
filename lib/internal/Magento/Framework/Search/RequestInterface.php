@@ -11,6 +11,8 @@ use Magento\Framework\Search\Request\QueryInterface;
 
 /**
  * Search Request
+ *
+ * @api
  */
 interface RequestInterface
 {
@@ -62,4 +64,11 @@ interface RequestInterface
      * @return int|null
      */
     public function getSize();
+
+    /**
+     * Get Sort items
+     *
+     * @return array
+     */
+    public function getSort();
 }

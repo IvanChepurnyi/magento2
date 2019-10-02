@@ -111,6 +111,10 @@ class Delete implements ProcessorInterface
             ];
 
             foreach ($entities as $scope) {
+                if (!isset($data[$scope])) {
+                    continue;
+                }
+
                 $items = $this->dataDifferenceCalculator->getItemsToDelete($scope, $data[$scope]);
 
                 if (!$items) {
@@ -164,10 +168,7 @@ class Delete implements ProcessorInterface
 
         foreach ($items as $storeCode) {
             $store = $this->storeRepository->get($storeCode);
-            $store->getResource()->delete($store);
-            $store->getResource()->addCommitCallback(function () use ($store) {
-                $this->eventManager->dispatch('store_delete', ['store' => $store]);
-            });
+            $store->delete();
         }
     }
 

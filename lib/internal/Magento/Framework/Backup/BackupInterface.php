@@ -11,6 +11,11 @@
  */
 namespace Magento\Framework\Backup;
 
+/**
+ * @api
+ *
+ * @deprecated Backups should be done using other means.
+ */
 interface BackupInterface
 {
     /**

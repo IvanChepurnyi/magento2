@@ -6,17 +6,18 @@
  */
 namespace Magento\ConfigurableProduct\Controller\Adminhtml\Product\Attribute;
 
+use Magento\Framework\App\Action\HttpPostActionInterface as HttpPostActionInterface;
 use Magento\Backend\App\Action;
 use Magento\Catalog\Model\ResourceModel\Eav\AttributeFactory;
 
-class CreateOptions extends Action
+class CreateOptions extends Action implements HttpPostActionInterface
 {
     /**
      * Authorization level of a basic admin session
      *
      * @see _isAllowed()
      */
-    const ADMIN_RESOURCE = 'Magento_Catalog::attributes_attributes';
+    const ADMIN_RESOURCE = 'Magento_Catalog::products';
 
     /**
      * @var \Magento\Framework\Json\Helper\Data

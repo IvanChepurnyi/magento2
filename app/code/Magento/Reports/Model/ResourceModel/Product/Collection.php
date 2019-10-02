@@ -5,14 +5,17 @@
  */
 
 /**
- * Products Report collection
- *
  * @author      Magento Core Team <core@magentocommerce.com>
  */
 namespace Magento\Reports\Model\ResourceModel\Product;
 
 /**
+ * Products Report collection.
+ *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
+ * @api
+ * @since 100.0.2
  */
 class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
 {
@@ -86,7 +89,7 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
      * @param \Magento\Reports\Model\Event\TypeFactory $eventTypeFactory
      * @param \Magento\Catalog\Model\Product\Type $productType
      * @param \Magento\Quote\Model\ResourceModel\Quote\Collection $quoteResource
-     * @param mixed $connection
+     * @param \Magento\Framework\DB\Adapter\AdapterInterface|null $connection
      *
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
@@ -147,7 +150,8 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
     }
 
     /**
-     * Set Type for COUNT SQL Select
+     * Set Type for COUNT SQL Select.
+     *
      * @codeCoverageIgnore
      *
      * @param int $type
@@ -160,7 +164,8 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
     }
 
     /**
-     * Set product entity id
+     * Set product entity id.
+     *
      * @codeCoverageIgnore
      *
      * @param string $entityId
@@ -173,7 +178,8 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
     }
 
     /**
-     * Get product entity id
+     * Get product entity id.
+     *
      * @codeCoverageIgnore
      *
      * @return int
@@ -184,7 +190,8 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
     }
 
     /**
-     * Set product entity table name
+     * Set product entity table name.
+     *
      * @codeCoverageIgnore
      *
      * @param string $value
@@ -197,7 +204,8 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
     }
 
     /**
-     * Get product entity table name
+     * Get product entity table name.
+     *
      * @codeCoverageIgnore
      *
      * @return string
@@ -208,7 +216,8 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
     }
 
     /**
-     * Get product attribute set  id
+     * Get product attribute set id.
+     *
      * @codeCoverageIgnore
      *
      * @return int
@@ -219,7 +228,8 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
     }
 
     /**
-     * Set product attribute set id
+     * Set product attribute set id.
+     *
      * @codeCoverageIgnore
      *
      * @param int $value
@@ -296,7 +306,7 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
     }
 
     /**
-     * Add views count
+     * Add views count.
      *
      * @param string $from
      * @param string $to
@@ -320,10 +330,7 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
             ['views' => 'COUNT(report_table_views.event_id)']
         )->join(
             ['e' => $this->getProductEntityTableName()],
-            $this->getConnection()->quoteInto(
-                'e.entity_id = report_table_views.object_id AND e.attribute_set_id = ?',
-                $this->getProductAttributeSetId()
-            )
+            'e.entity_id = report_table_views.object_id'
         )->where(
             'report_table_views.event_type_id = ?',
             $productViewEvent
@@ -339,6 +346,7 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
         if ($from != '' && $to != '') {
             $this->getSelect()->where('logged_at >= ?', $from)->where('logged_at <= ?', $to);
         }
+
         return $this;
     }
 

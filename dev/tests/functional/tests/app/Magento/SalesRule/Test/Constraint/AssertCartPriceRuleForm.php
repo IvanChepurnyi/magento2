@@ -35,7 +35,8 @@ class AssertCartPriceRuleForm extends AbstractConstraint
      * @param PromoQuoteEdit $promoQuoteEdit
      * @param FixtureFactory $fixtureFactory
      * @param SalesRule $salesRule
-     * @param SalesRule $salesRuleOrigin
+     * @param SalesRule $salesRuleOrigin [optional]
+     * @param SalesRule $salesRuleAdditional [optional]
      * @return void
      */
     public function processAssert(
@@ -43,7 +44,8 @@ class AssertCartPriceRuleForm extends AbstractConstraint
         PromoQuoteEdit $promoQuoteEdit,
         FixtureFactory $fixtureFactory,
         SalesRule $salesRule,
-        SalesRule $salesRuleOrigin = null
+        SalesRule $salesRuleOrigin = null,
+        SalesRule $salesRuleAdditional = null
     ) {
         $filter = [
             'name' => $salesRule->hasData('name') ? $salesRule->getName() : $salesRuleOrigin->getName(),
@@ -59,8 +61,11 @@ class AssertCartPriceRuleForm extends AbstractConstraint
         $fixtureData = $salesRuleOrigin != null
             ? array_merge($salesRuleOrigin->getData(), $salesRule->getData())
             : $salesRule->getData();
+        if ($salesRuleAdditional) {
+            $fixtureData = array_merge($fixtureData, $salesRuleAdditional->getData());
+        }
         $dataDiff = $this->verify($fixtureData, $formData);
-        \PHPUnit_Framework_Assert::assertTrue(
+        \PHPUnit\Framework\Assert::assertTrue(
             empty($dataDiff),
             'Sales rule data on edit page(backend) not equals to passed from fixture.'
             . "\nFailed values:\n " . implode(";\n ", $dataDiff)

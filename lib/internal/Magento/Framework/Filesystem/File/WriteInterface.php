@@ -5,6 +5,9 @@
  */
 namespace Magento\Framework\Filesystem\File;
 
+/**
+ * @api
+ */
 interface WriteInterface extends ReadInterface
 {
     /**
@@ -41,7 +44,7 @@ interface WriteInterface extends ReadInterface
      * @param int $lockMode
      * @return bool
      */
-    public function lock($lockMode = LOCK_EX);
+    public function lock($lockMode = \LOCK_EX);
 
     /**
      * File unlocking

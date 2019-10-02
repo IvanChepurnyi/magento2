@@ -14,7 +14,7 @@ use Magento\Customer\Controller\RegistryConstants;
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @magentoAppArea adminhtml
  */
-class PersonalInfoTest extends \PHPUnit_Framework_TestCase
+class PersonalInfoTest extends \PHPUnit\Framework\TestCase
 {
     /** @var  \Magento\Backend\Block\Template\Context */
     private $_context;
@@ -99,19 +99,30 @@ class PersonalInfoTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetCustomer()
     {
-        $expectedCustomerData = $this->_loadCustomer()->__toArray();
-        $actualCustomerData = $this->_block->getCustomer()->__toArray();
+        $expectedCustomer = $this->_loadCustomer();
+        $expectedCustomerData = $this->_dataObjectProcessor->buildOutputDataArray(
+            $expectedCustomer,
+            \Magento\Customer\Api\Data\CustomerInterface::class
+        );
+        $actualCustomer = $this->_block->getCustomer();
+        $actualCustomerData = $this->_dataObjectProcessor->buildOutputDataArray(
+            $actualCustomer,
+            \Magento\Customer\Api\Data\CustomerInterface::class
+        );
         foreach ($expectedCustomerData as $property => $value) {
-            $expectedValue = is_numeric($value) ? intval($value) : $value;
+            $expectedValue = is_numeric($value) ? (int)$value : $value;
             $actualValue = isset($actualCustomerData[$property]) ? $actualCustomerData[$property] : null;
-            $actualValue = is_numeric($actualValue) ? intval($actualValue) : $actualValue;
+            $actualValue = is_numeric($actualValue) ? (int)$actualValue : $actualValue;
             $this->assertEquals($expectedValue, $actualValue);
         }
     }
 
     public function testGetCustomerEmpty()
     {
-        $this->assertEquals($this->_createCustomer(), $this->_block->getCustomer());
+        $expectedCustomer = $this->createCustomerAndAddToBackendSession();
+        $actualCustomer = $this->_block->getCustomer();
+        $this->assertEquals($expectedCustomer->getExtensionAttributes(), $actualCustomer->getExtensionAttributes());
+        $this->assertEquals($expectedCustomer, $actualCustomer);
     }
 
     /**
@@ -125,7 +136,7 @@ class PersonalInfoTest extends \PHPUnit_Framework_TestCase
 
     public function testGetGroupNameNull()
     {
-        $this->_createCustomer();
+        $this->createCustomerAndAddToBackendSession();
         $this->assertNull($this->_block->getGroupName());
     }
 
@@ -235,7 +246,7 @@ class PersonalInfoTest extends \PHPUnit_Framework_TestCase
 
     public function testGetBillingAddressHtmlNoDefaultAddress()
     {
-        $this->_createCustomer();
+        $this->createCustomerAndAddToBackendSession();
         $this->assertEquals(
             __('The customer does not have default billing address.'),
             $this->_block->getBillingAddressHtml()
@@ -245,7 +256,7 @@ class PersonalInfoTest extends \PHPUnit_Framework_TestCase
     /**
      * @return \Magento\Customer\Api\Data\CustomerInterface
      */
-    private function _createCustomer()
+    private function createCustomerAndAddToBackendSession()
     {
         /** @var \Magento\Customer\Api\Data\CustomerInterface $customer */
         $customer = $this->_customerFactory->create()->setFirstname(

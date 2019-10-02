@@ -6,9 +6,10 @@
 namespace Magento\AdminNotification\Model\ResourceModel;
 
 /**
- * AdminNotification Inbox model
+ * Inbox resource model
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @api
+ * @since 100.0.2
  */
 class Inbox extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
@@ -78,8 +79,7 @@ class Inbox extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             'is_read=?',
             0
         );
-        $return = $connection->fetchPairs($select);
-        return $return;
+        return $connection->fetchPairs($select);
     }
 
     /**

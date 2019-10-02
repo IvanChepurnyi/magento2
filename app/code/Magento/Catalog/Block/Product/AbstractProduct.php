@@ -7,8 +7,11 @@ namespace Magento\Catalog\Block\Product;
 
 /**
  * Class AbstractProduct
+ * @api
+ * @deprecated 101.1.0
  * @SuppressWarnings(PHPMD.NumberOfChildren)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @since 100.0.2
  */
 class AbstractProduct extends \Magento\Framework\View\Element\Template
 {
@@ -95,6 +98,12 @@ class AbstractProduct extends \Magento\Framework\View\Element\Template
     protected $stockRegistry;
 
     /**
+     * @var ImageBuilder
+     * @since 101.1.0
+     */
+    protected $imageBuilder;
+
+    /**
      * @param Context $context
      * @param array $data
      */
@@ -116,6 +125,7 @@ class AbstractProduct extends \Magento\Framework\View\Element\Template
 
     /**
      * Retrieve url for add product to cart
+     *
      * Will return product view page URL if product has required options
      *
      * @param \Magento\Catalog\Model\Product $product
@@ -186,7 +196,7 @@ class AbstractProduct extends \Magento\Framework\View\Element\Template
      * Gets minimal sales quantity
      *
      * @param \Magento\Catalog\Model\Product $product
-     * @return int|null
+     * @return float|null
      */
     public function getMinimalQty($product)
     {
@@ -464,7 +474,9 @@ class AbstractProduct extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * @param null $type
+     * Get the renderer that will be used to render the details block
+     *
+     * @param string|null $type
      * @return bool|\Magento\Framework\View\Element\AbstractBlock
      */
     public function getDetailsRenderer($type = null)
@@ -480,6 +492,8 @@ class AbstractProduct extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Return the list of details
+     *
      * @return \Magento\Framework\View\Element\RendererList
      */
     protected function getDetailsRendererList()
@@ -501,9 +515,6 @@ class AbstractProduct extends \Magento\Framework\View\Element\Template
      */
     public function getImage($product, $imageId, $attributes = [])
     {
-        return $this->imageBuilder->setProduct($product)
-            ->setImageId($imageId)
-            ->setAttributes($attributes)
-            ->create();
+        return $this->imageBuilder->create($product, $imageId, $attributes);
     }
 }

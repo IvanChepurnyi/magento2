@@ -10,6 +10,12 @@ use Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory;
 use Magento\Eav\Model\Config;
 use Magento\Eav\Model\Entity\Attribute;
 
+/**
+ * @api
+ * @since 100.0.2
+ * @deprecated
+ * @see \Magento\ElasticSearch
+ */
 class ProductFieldset implements \Magento\Framework\Indexer\FieldsetInterface
 {
     /**

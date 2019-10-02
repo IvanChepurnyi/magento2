@@ -14,6 +14,12 @@ use Magento\Framework\Indexer\IndexStructureInterface;
 use Magento\Framework\Indexer\ScopeResolver\IndexScopeResolver;
 use Magento\Framework\Search\Request\IndexScopeResolverInterface;
 
+/**
+ * Catalog search index structure.
+ *
+ * @api
+ * @since 100.0.2
+ */
 class IndexStructure implements IndexStructureInterface
 {
     /**
@@ -39,9 +45,7 @@ class IndexStructure implements IndexStructureInterface
     }
 
     /**
-     * @param string $index
-     * @param Dimension[] $dimensions
-     * @return void
+     * @inheritdoc
      */
     public function delete($index, array $dimensions = [])
     {
@@ -52,11 +56,7 @@ class IndexStructure implements IndexStructureInterface
     }
 
     /**
-     * @param string $index
-     * @param array $fields
-     * @param array $dimensions
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     * @return void
+     * @inheritdoc
      */
     public function create($index, array $fields, array $dimensions = [])
     {
@@ -64,6 +64,8 @@ class IndexStructure implements IndexStructureInterface
     }
 
     /**
+     * Create fulltext index table.
+     *
      * @param string $tableName
      * @throws \Zend_Db_Exception
      * @return void

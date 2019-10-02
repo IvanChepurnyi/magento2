@@ -6,6 +6,7 @@
 
 namespace Magento\Deploy\Console;
 
+use Magento\Deploy\Process\Queue;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
@@ -56,6 +57,11 @@ class DeployStaticOptions
      * Key for jobs option
      */
     const JOBS_AMOUNT = 'jobs';
+
+    /**
+     * Key for max execution time option
+     */
+    const MAX_EXECUTION_TIME = 'max-execution-time';
 
     /**
      * Force run of static deploy
@@ -132,6 +138,11 @@ class DeployStaticOptions
     const CONTENT_VERSION = 'content-version';
 
     /**
+     * Key for refresh content version only mode
+     */
+    const REFRESH_CONTENT_VERSION_ONLY = 'refresh-content-version-only';
+
+    /**
      * Deploy static command options list
      *
      * @return array
@@ -145,6 +156,7 @@ class DeployStaticOptions
      * Basic options
      *
      * @return array
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     private function getBasicOptions()
     {
@@ -212,6 +224,13 @@ class DeployStaticOptions
                 self::DEFAULT_JOBS_AMOUNT
             ),
             new InputOption(
+                self::MAX_EXECUTION_TIME,
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'The maximum expected execution time of deployment static process (in seconds).',
+                Queue::DEFAULT_MAX_EXEC_TIME
+            ),
+            new InputOption(
                 self::SYMLINK_LOCALE,
                 null,
                 InputOption::VALUE_NONE,
@@ -225,10 +244,17 @@ class DeployStaticOptions
                 'Custom version of static content can be used if running deployment on multiple nodes '
                 . 'to ensure that static content version is identical and caching works properly.'
             ),
+            new InputOption(
+                self::REFRESH_CONTENT_VERSION_ONLY,
+                null,
+                InputOption::VALUE_NONE,
+                'Refreshing the version of static content only can be used to refresh static content '
+                . 'in browser cache and CDN cache.'
+            ),
             new InputArgument(
                 self::LANGUAGES_ARGUMENT,
                 InputArgument::IS_ARRAY,
-                'Space-separated list of ISO-636 language codes for which to output static view files.'
+                'Space-separated list of ISO-639 language codes for which to output static view files.'
             ),
         ];
     }

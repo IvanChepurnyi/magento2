@@ -5,10 +5,12 @@
  */
 namespace Magento\Catalog\Test\Unit\Helper;
 
-class ImageTest extends \PHPUnit_Framework_TestCase
+use Magento\Catalog\Helper\Image;
+
+class ImageTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var \Magento\Catalog\Helper\Image
+     * @var Image
      */
     protected $helper;
 
@@ -42,6 +44,11 @@ class ImageTest extends \PHPUnit_Framework_TestCase
      */
     protected $scopeConfig;
 
+    /**
+     * @var \Magento\Catalog\Model\View\Asset\PlaceholderFactory|\PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $placeholderFactory;
+
     protected function setUp()
     {
         $this->mockContext();
@@ -54,11 +61,16 @@ class ImageTest extends \PHPUnit_Framework_TestCase
         $this->viewConfig = $this->getMockBuilder(\Magento\Framework\View\ConfigInterface::class)
             ->getMockForAbstractClass();
 
-        $this->helper = new \Magento\Catalog\Helper\Image(
+        $this->placeholderFactory = $this->getMockBuilder(\Magento\Catalog\Model\View\Asset\PlaceholderFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->helper = new Image(
             $this->context,
             $this->imageFactory,
             $this->assetRepository,
-            $this->viewConfig
+            $this->viewConfig,
+            $this->placeholderFactory
         );
     }
 
@@ -108,7 +120,7 @@ class ImageTest extends \PHPUnit_Framework_TestCase
         $this->prepareWatermarkProperties($data);
 
         $this->assertInstanceOf(
-            \Magento\Catalog\Helper\Image::class,
+            Image::class,
             $this->helper->init($productMock, $imageId, $attributes)
         );
     }
@@ -150,7 +162,7 @@ class ImageTest extends \PHPUnit_Framework_TestCase
             ->getMock();
         $configViewMock->expects($this->once())
             ->method('getMediaAttributes')
-            ->with('Magento_Catalog', 'images', $imageId)
+            ->with('Magento_Catalog', Image::MEDIA_TYPE_CONFIG_NODE, $imageId)
             ->willReturn($data);
 
         $this->viewConfig->expects($this->once())

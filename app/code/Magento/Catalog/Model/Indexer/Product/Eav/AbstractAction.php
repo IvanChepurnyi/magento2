@@ -3,13 +3,22 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
+declare(strict_types=1);
+
 namespace Magento\Catalog\Model\Indexer\Product\Eav;
+
+use Magento\Catalog\Model\ResourceModel\Product\Indexer\Eav\AbstractEav;
 
 /**
  * Abstract action reindex class
  */
 abstract class AbstractAction
 {
+    /**
+     * Config path for enable EAV indexer
+     */
+    const ENABLE_EAV_INDEXER = 'catalog/search/enable_eav_indexer';
+
     /**
      * EAV Indexers by type
      *
@@ -28,24 +37,26 @@ abstract class AbstractAction
     protected $_eavDecimalFactory;
 
     /**
-     * @var array
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
-    private $frontendResources;
+    private $scopeConfig;
 
     /**
      * AbstractAction constructor.
      * @param \Magento\Catalog\Model\ResourceModel\Product\Indexer\Eav\DecimalFactory $eavDecimalFactory
      * @param \Magento\Catalog\Model\ResourceModel\Product\Indexer\Eav\SourceFactory $eavSourceFactory
-     * @param array $frontendResources
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface|null $scopeConfig
      */
     public function __construct(
         \Magento\Catalog\Model\ResourceModel\Product\Indexer\Eav\DecimalFactory $eavDecimalFactory,
         \Magento\Catalog\Model\ResourceModel\Product\Indexer\Eav\SourceFactory $eavSourceFactory,
-        $frontendResources = []
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig = null
     ) {
         $this->_eavDecimalFactory = $eavDecimalFactory;
         $this->_eavSourceFactory = $eavSourceFactory;
-        $this->frontendResources = $frontendResources;
+        $this->scopeConfig = $scopeConfig ?: \Magento\Framework\App\ObjectManager::getInstance()->get(
+            \Magento\Framework\App\Config\ScopeConfigInterface::class
+        );
     }
 
     /**
@@ -59,7 +70,7 @@ abstract class AbstractAction
     /**
      * Retrieve array of EAV type indexers
      *
-     * @return \Magento\Catalog\Model\ResourceModel\Product\Indexer\Eav\AbstractEav[]
+     * @return AbstractEav[]
      */
     public function getIndexers()
     {
@@ -77,7 +88,7 @@ abstract class AbstractAction
      * Retrieve indexer instance by type
      *
      * @param string $type
-     * @return \Magento\Catalog\Model\ResourceModel\Product\Indexer\Eav\AbstractEav
+     * @return AbstractEav
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getIndexer($type)
@@ -98,7 +109,10 @@ abstract class AbstractAction
      */
     public function reindex($ids = null)
     {
-        foreach ($this->getIndexers() as $type => $indexer) {
+        if (!$this->isEavIndexerEnabled()) {
+            return;
+        }
+        foreach ($this->getIndexers() as $indexer) {
             if ($ids === null) {
                 $indexer->reindexAll();
             } else {
@@ -107,10 +121,7 @@ abstract class AbstractAction
                 }
                 $ids = $this->processRelations($indexer, $ids);
                 $indexer->reindexEntities($ids);
-                $resource = isset($this->frontendResources[$type])
-                    ? $this->frontendResources[$type]
-                    : $this->frontendResources['default'];
-                $destinationTable = $resource->getMainTable();
+                $destinationTable = $indexer->getMainTable();
                 $this->syncData($indexer, $destinationTable, $ids);
             }
         }
@@ -119,7 +130,7 @@ abstract class AbstractAction
     /**
      * Synchronize data between index storage and original storage
      *
-     * @param \Magento\Catalog\Model\ResourceModel\Product\Indexer\Eav\AbstractEav $indexer
+     * @param AbstractEav $indexer
      * @param string $destinationTable
      * @param array $ids
      * @throws \Exception
@@ -145,15 +156,32 @@ abstract class AbstractAction
     /**
      * Retrieve product relations by children and parent
      *
-     * @param \Magento\Catalog\Model\ResourceModel\Product\Indexer\Eav\AbstractEav $indexer
+     * @param AbstractEav $indexer
      * @param array $ids
-     *
-     * @return $ids
+     * @param bool $onlyParents
+     * @return array $ids
      */
-    protected function processRelations($indexer, $ids)
+    protected function processRelations(AbstractEav $indexer, array $ids, bool $onlyParents = false)
     {
         $parentIds = $indexer->getRelationsByChild($ids);
-        $childIds = $indexer->getRelationsByParent($ids);
+        $parentIds = array_unique(array_merge($parentIds, $ids));
+        $childIds = $onlyParents ? [] : $indexer->getRelationsByParent($parentIds);
+
         return array_unique(array_merge($ids, $childIds, $parentIds));
+    }
+
+    /**
+     * Get EAV indexer status
+     *
+     * @return bool
+     */
+    private function isEavIndexerEnabled(): bool
+    {
+        $eavIndexerStatus = $this->scopeConfig->getValue(
+            self::ENABLE_EAV_INDEXER,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+
+        return (bool)$eavIndexerStatus;
     }
 }

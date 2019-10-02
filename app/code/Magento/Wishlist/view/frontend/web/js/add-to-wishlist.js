@@ -112,10 +112,6 @@ define([
                     };
                 }
 
-                if (!$.isEmptyObject(dataToAdd)) {
-                    self._removeExcessiveData(params, dataToAdd);
-                }
-
                 params.data = $.extend({}, params.data, dataToAdd, {
                     'qty': $(self.options.qtyInfo).val()
                 });
@@ -128,6 +124,7 @@ define([
          * @param {Object} array2
          * @return {Object}
          * @private
+         * @deprecated
          */
         _arrayDiffByKeys: function (array1, array2) {
             var result = {};
@@ -165,18 +162,12 @@ define([
                 $.each(elementValue, function (key, option) {
                     data[elementName + '[' + option + ']'] = option;
                 });
-            } else {
-                if (elementValue) { //eslint-disable-line no-lonely-if
-                    if (elementName.substr(elementName.length - 2) == '[]') { //eslint-disable-line eqeqeq, max-depth
-                        elementName = elementName.substring(0, elementName.length - 2);
+            } else if (elementName.substr(elementName.length - 2) == '[]') { //eslint-disable-line eqeqeq, max-depth
+                elementName = elementName.substring(0, elementName.length - 2);
 
-                        if (elementValue) { //eslint-disable-line max-depth
-                            data[elementName + '[' + elementValue + ']'] = elementValue;
-                        }
-                    } else {
-                        data[elementName] = elementValue;
-                    }
-                }
+                data[elementName + '[' + elementValue + ']'] = elementValue;
+            } else {
+                data[elementName] = elementValue;
             }
 
             return data;
@@ -186,6 +177,7 @@ define([
          * @param {Object} params
          * @param {Object} dataToAdd
          * @private
+         * @deprecated
          */
         _removeExcessiveData: function (params, dataToAdd) {
             var dataToRemove = this._arrayDiffByKeys(params.data, dataToAdd);

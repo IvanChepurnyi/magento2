@@ -13,6 +13,9 @@ use Magento\Framework\Serialize\Serializer\Json;
  * Custom currency symbol model
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ *
+ * @api
+ * @since 100.0.2
  */
 class Currencysymbol
 {
@@ -184,14 +187,16 @@ class Currencysymbol
     /**
      * Save currency symbol to config
      *
-     * @param  $symbols array
+     * @param array $symbols
      * @return $this
      */
     public function setCurrencySymbolsData($symbols = [])
     {
-        foreach ($this->getCurrencySymbolsData() as $code => $values) {
-            if (isset($symbols[$code]) && ($symbols[$code] == $values['parentSymbol'] || empty($symbols[$code]))) {
-                unset($symbols[$code]);
+        if (!$this->_storeManager->isSingleStoreMode()) {
+            foreach ($this->getCurrencySymbolsData() as $code => $values) {
+                if (isset($symbols[$code]) && ($symbols[$code] == $values['parentSymbol'] || empty($symbols[$code]))) {
+                    unset($symbols[$code]);
+                }
             }
         }
         $value = [];

@@ -7,6 +7,7 @@
  * @api
  */
 define([
+    'jquery',
     'Magento_Ui/js/lib/view/utils/async',
     'jquery/ui',
     'mage/translate',
@@ -90,8 +91,8 @@ define([
 
         /**
          * Add product list types as scope and their urls
-         * expamle: addListType('product_to_add', {urlFetch: 'http://magento...'})
-         * expamle: addListType('wishlist', {urlSubmit: 'http://magento...'})
+         * example: addListType('product_to_add', {urlFetch: 'http://magento...'})
+         * example: addListType('wishlist', {urlSubmit: 'http://magento...'})
          *
          * @param type types as scope
          * @param urls obj can be
@@ -111,7 +112,7 @@ define([
         /**
          * Adds complex list type - that is used to submit several list types at once
          * Only urlSubmit is possible for this list type
-         * expamle: addComplexListType(['wishlist', 'product_list'], 'http://magento...')
+         * example: addComplexListType(['wishlist', 'product_list'], 'http://magento...')
          *
          * @param type types as scope
          * @param urls obj can be
@@ -469,26 +470,6 @@ define([
         },
 
         /**
-         * toggles Selects states (for IE) except those to be shown in popup
-         */
-        /*_toggleSelectsExceptBlock: function(flag) {
-         if(Prototype.Browser.IE){
-         if (this.blockForm) {
-         var states = new Array;
-         var selects = this.blockForm.getElementsByTagName("select");
-         for(var i=0; i<selects.length; i++){
-         states[i] = selects[i].style.visibility
-         }
-         }
-         if (this.blockForm) {
-         for(i=0; i<selects.length; i++){
-         selects[i].style.visibility = states[i]
-         }
-         }
-         }
-         },*/
-
-        /**
          * Close configuration window
          */
         _closeWindow: function () {
@@ -838,4 +819,6 @@ define([
     };
 
     productConfigure = new ProductConfigure();
+    jQuery(document).trigger('productConfigure:inited');
+    jQuery(document).data('productConfigureInited', true);
 });

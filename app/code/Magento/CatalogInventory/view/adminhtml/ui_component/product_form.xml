@@ -99,6 +99,9 @@
                     </validation>
                     <label translate="true">Qty</label>
                     <dataScope>quantity_and_stock_status.qty</dataScope>
+                    <links>
+                        <link name="value">ns = ${ $.ns }, index = qty, group = quantity_and_stock_status_qty:value</link>
+                    </links>
                     <imports>
                         <link name="handleChanges">${$.provider}:data.product.stock_data.is_qty_decimal</link>
                         <link name="visible">${$.provider}:data.product.stock_data.manage_stock</link>
@@ -285,7 +288,7 @@
                     <settings>
                         <scopeLabel>[GLOBAL]</scopeLabel>
                         <validation>
-                            <rule name="validate-number" xsi:type="boolean">true</rule>
+                            <rule name="validate-greater-than-zero" xsi:type="boolean">true</rule>
                         </validation>
                         <label translate="true">Maximum Qty Allowed in Shopping Cart</label>
                         <dataScope>max_sale_qty</dataScope>
@@ -416,65 +419,6 @@
                         </links>
                         <exports>
                             <link name="checked">${$.parentName}.backorders:disabled</link>
-                        </exports>
-                    </settings>
-                    <formElements>
-                        <checkbox class="Magento\CatalogInventory\Ui\Component\Product\Form\Element\UseConfigSettings">
-                            <settings>
-                                <description translate="true">Use Config Settings</description>
-                                <valueMap>
-                                    <map name="false" xsi:type="string">0</map>
-                                    <map name="true" xsi:type="string">1</map>
-                                </valueMap>
-                            </settings>
-                        </checkbox>
-                    </formElements>
-                </field>
-            </container>
-            <container name="container_deferred_stock_update" component="Magento_Ui/js/form/components/group" sortOrder="850">
-                <argument name="data" xsi:type="array">
-                    <item name="config" xsi:type="array">
-                        <item name="formElement" xsi:type="string">container</item>
-                        <item name="label" xsi:type="string" translate="true">Use Deferred Stock Update</item>
-                        <item name="dataScope" xsi:type="string">stock_data</item>
-                        <item name="scopeLabel" xsi:type="string">[GLOBAL]</item>
-                    </item>
-                </argument>
-                <field name="deferred_stock_update" formElement="select">
-                    <argument name="data" xsi:type="array">
-                        <item name="config" xsi:type="array">
-                            <item name="rawOptions" xsi:type="boolean">true</item>
-                            <item name="value" xsi:type="object">Magento\CatalogInventory\Model\Source\StockConfiguration</item>
-                        </item>
-                    </argument>
-                    <settings>
-                        <scopeLabel>[GLOBAL]</scopeLabel>
-                        <label translate="true">Use Deferred Stock Update</label>
-                        <dataScope>deferred_stock_update</dataScope>
-                    </settings>
-                    <formElements>
-                        <select>
-                            <settings>
-                                <options class="Magento\Config\Model\Config\Source\Yesno"/>
-                            </settings>
-                        </select>
-                    </formElements>
-                </field>
-                <field name="use_config_deferred_stock_update" component="Magento_CatalogInventory/js/components/use-config-settings" formElement="checkbox">
-                    <argument name="data" xsi:type="array">
-                        <item name="config" xsi:type="array">
-                            <item name="value" xsi:type="string">1</item>
-                            <item name="valueFromConfig" xsi:type="object">Magento\CatalogInventory\Model\Source\StockConfiguration</item>
-                            <item name="keyInConfiguration" xsi:type="string">deferred_stock_update</item>
-                        </item>
-                    </argument>
-                    <settings>
-                        <dataScope>use_config_deferred_stock_update</dataScope>
-                        <links>
-                            <link name="linkedValue">${$.provider}:data.product.stock_data.deferred_stock_update</link>
-                        </links>
-                        <exports>
-                            <link name="checked">${$.parentName}.deferred_stock_update:disabled</link>
                         </exports>
                     </settings>
                     <formElements>
@@ -627,7 +571,7 @@
                     <settings>
                         <scopeLabel>[GLOBAL]</scopeLabel>
                         <validation>
-                            <rule name="validate-digits" xsi:type="boolean">true</rule>
+                            <rule name="validate-integer" xsi:type="boolean">true</rule>
                             <rule name="validate-number" xsi:type="boolean">true</rule>
                         </validation>
                         <label translate="true">Qty Increments</label>

@@ -9,6 +9,9 @@ namespace Magento\Framework\Logger\Handler;
 use Magento\Framework\Filesystem\DriverInterface;
 use Monolog\Logger;
 
+/**
+ * System stream handler
+ */
 class System extends Base
 {
     /**
@@ -41,20 +44,21 @@ class System extends Base
     }
 
     /**
-     * @{inheritDoc}
+     * Writes formatted record through the handler.
      *
-     * @param $record array
+     * @param array $record The record metadata
      * @return void
      */
     public function write(array $record)
     {
-        if (isset($record['context']['is_exception']) && $record['context']['is_exception']) {
-            unset($record['context']['is_exception']);
+        if (isset($record['context']['exception'])) {
             $this->exceptionHandler->handle($record);
-        } else {
-            unset($record['context']['is_exception']);
-            $record['formatted'] = $this->getFormatter()->format($record);
-            parent::write($record);
+
+            return;
         }
+
+        $record['formatted'] = $this->getFormatter()->format($record);
+
+        parent::write($record);
     }
 }
